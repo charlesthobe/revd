@@ -81,20 +81,30 @@ static void Log(const char* fmt, ...)
 
 // ---- engine audio wave slots
 // --------------------------------------------------------------------
-static const DWORD kSlotTableRva = 0xE832B8;
-static const DWORD kSlotCountRva = 0xE83298;
-static const DWORD kSlotBoundRva = 0x58D50F; // imm8 of `cmp edi, 0x19`
+static const DWORD BaseAdress_unused = 0xd90000;  // 1.8 0x400000
+static const DWORD kSlotTableRva = 0xE832B8; // 0x1C132B8 // LE to BE 0xB832C101
+static const DWORD kSlotCountRva = 0xE83298; // 0x1C13298
+static const DWORD kSlotBoundRva = 0x58D50F; // imm8 of `cmp edi, 0x19` // 0x131D50F // 1.8 offset 0x8254d4
 struct SlotRef
 {
     DWORD rva;
     DWORD field;
 };
-static const SlotRef kSlotRefs[] = {
+static const SlotRef kSlotRefs[] = { // relative CE 1.2.0.59
     {0x58B979, 8}, {0x58B984, 8}, {0x58B98F, 12}, {0x58B995, 8}, {0x58CBD0, 0},
     {0x58D4C6, 8}, {0x58ECC6, 0}, {0x58ED09, 0},  {0x58ED0F, 8}, {0x58ED23, 4},
     {0x58ED35, 8}, {0x599577, 0}, {0x599767, 0},  {0x828054, 0},
 };
-static const int kNumSlotRefs = (int)(sizeof kSlotRefs / sizeof kSlotRefs[0]);
+// CE 1.2.0.59 kSlotTableRva offsets
+// +4   0x1C132BC
+// +8   0x1C132C0
+// +12  0x1C132C4
+//static const SlotRef kSlotRefs[] = { // CE 1.2.0.59
+//    {0x131B979, 8}, {0x131B984, 8}, {0x131B98F, 12}, {0x131B995, 8}, {0x131CBD0, 0},
+//    {0x131D4C6, 8}, {0x131ECC6, 0}, {0x131ED09, 0}, {0x131ED0F, 8}, {0x131ED23, 4},
+//    {0x131ED35, 8}, {0x1329577 , 0}, {0x1329767, 0}, {0x15B8054, 0},
+//};
+static const int kNumSlotRefs = (int)(sizeof kSlotRefs / sizeof kSlotRefs[0]); // 14
 static const int kStockSlots = 25;
 static const int kMaxSlots = 64; // the relocated table's capacity
 
@@ -128,139 +138,6 @@ static const int kSlotBytes =
     794624; // every stock engine slot declares exactly this
 static bool g_cfgWriteWaveslots = true;
 
-static bool ReadWholeFile(const char* path, char** out, size_t* outLen)
-{
-    FILE* f = fopen(path, "rb");
-    if (!f)
-        return false;
-    fseek(f, 0, SEEK_END);
-    long n = ftell(f);
-    if (n <= 0 || n > 8 * 1024 * 1024)
-    {
-        fclose(f);
-        return false;
-    }
-    fseek(f, 0, SEEK_SET);
-    char* buf = (char*)malloc((size_t)n + 1);
-    if (!buf)
-    {
-        fclose(f);
-        return false;
-    }
-    size_t got = fread(buf, 1, (size_t)n, f);
-    fclose(f);
-    buf[got] = 0;
-    *out = buf;
-    *outLen = got;
-    return true;
-}
-
-static void WaveslotsPath(char* dst, size_t cap)
-{
-    char exe[MAX_PATH];
-    GetModuleFileNameA(NULL, exe, MAX_PATH); // ...\GTAIV\GTAIV.exe
-    char* slash = strrchr(exe, '\\');
-    if (slash)
-        *slash = 0;
-    _snprintf(dst, cap, "%s\\pc\\audio\\config\\waveslots.xml", exe);
-    dst[cap - 1] = 0;
-}
-
-static bool EnsureWaveslots(int slots)
-{
-    char path[MAX_PATH];
-    WaveslotsPath(path, sizeof path);
-
-    char* buf = NULL;
-    size_t len = 0;
-    if (!ReadWholeFile(path, &buf, &len))
-    {
-        Log("waveslots: cannot read %s - leaving it alone", path);
-        return false;
-    }
-
-    // which STREAM_ENGINE_<n> already exist
-    bool present[kMaxSlots + 1];
-    memset(present, 0, sizeof present);
-    const char* kNeedle = "STREAM_ENGINE_";
-    for (const char* p = strstr(buf, kNeedle); p; p = strstr(p + 1, kNeedle))
-    {
-        int n = atoi(p + strlen(kNeedle));
-        if (n >= 1 && n <= kMaxSlots)
-            present[n] = true;
-    }
-    int missing = 0;
-    for (int i = 1; i <= slots; i++)
-        if (!present[i])
-            missing++;
-    if (missing == 0)
-    {
-        Log("waveslots: already declares STREAM_ENGINE_1..%d - not touched",
-            slots);
-        free(buf);
-        return true;
-    }
-
-    const char* close = NULL;
-    for (const char* p = strstr(buf, "</WaveSlots>"); p;
-         p = strstr(p + 1, "</WaveSlots>"))
-        close = p;
-    if (!close)
-    {
-        Log("waveslots: no </WaveSlots> in %s - leaving it alone", path);
-        free(buf);
-        return false;
-    }
-
-    const char* eol = strstr(buf, "\r\n") ? "\r\n" : "\n";
-
-    char bak[MAX_PATH];
-    _snprintf(bak, sizeof bak, "%s.bak", path);
-    bak[sizeof bak - 1] = 0;
-    if (CopyFileA(path, bak, TRUE))
-        Log("waveslots: backed the original up to %s", bak);
-
-    char tmp[MAX_PATH];
-    _snprintf(tmp, sizeof tmp, "%s.revdtmp", path);
-    tmp[sizeof tmp - 1] = 0;
-    FILE* out = fopen(tmp, "wb");
-    if (!out)
-    {
-        Log("waveslots: cannot write %s - leaving the original alone", tmp);
-        free(buf);
-        return false;
-    }
-
-    fwrite(buf, 1, (size_t)(close - buf), out);
-    for (int i = 1; i <= slots; i++)
-    {
-        if (present[i])
-            continue;
-        fprintf(out, "  <Slot>%s", eol);
-        fprintf(out, "    <Name content=\"ascii\">STREAM_ENGINE_%d</Name>%s", i,
-                eol);
-        fprintf(out, "    <MaxHeaderSize value=\"2048\" />%s", eol);
-        fprintf(out, "    <LoadType content=\"ascii\">BANK</LoadType>%s", eol);
-        fprintf(out, "    <Size value=\"%d\" />%s", kSlotBytes, eol);
-        fprintf(out, "  </Slot>%s", eol);
-    }
-    fwrite(close, 1, len - (size_t)(close - buf), out);
-    fclose(out);
-    free(buf);
-
-    if (!MoveFileExA(tmp, path, MOVEFILE_REPLACE_EXISTING))
-    {
-        Log("waveslots: could not replace %s (error %lu) - the original is "
-            "untouched",
-            path, GetLastError());
-        DeleteFileA(tmp);
-        return false;
-    }
-    Log("waveslots: added %d missing slot(s), now declares STREAM_ENGINE_1..%d",
-        missing, slots);
-    return true;
-}
-
 static bool PatchAudioHeap(BYTE* base)
 {
     BYTE* p = base + kAudioHeapRva;
@@ -290,6 +167,7 @@ static bool PatchAudioHeap(BYTE* base)
         Log("audio heap: VirtualProtect failed %lu", GetLastError());
         return false;
     }
+    __builtin_trap();
     *(int*)p = want;
     VirtualProtect(p, 4, old, &old);
     FlushInstructionCache(GetCurrentProcess(), p, 4);
@@ -309,6 +187,7 @@ static bool PatchEngineSlots(BYTE* base)
     }
     if (base[kSlotBoundRva] != 0x19)
     {
+        __builtin_trap();
         if (!g_slotsWarned)
         {
             g_slotsWarned = true;
@@ -334,6 +213,7 @@ static bool PatchEngineSlots(BYTE* base)
     }
     memset(g_slotTable, 0, sizeof g_slotTable);
     const DWORD newBase = (DWORD)&g_slotTable[8];
+    __builtin_trap();
     for (int i = 0; i < kNumSlotRefs; i++)
     {
         BYTE* p = base + kSlotRefs[i].rva;
@@ -445,12 +325,7 @@ static DWORD WINAPI Worker(LPVOID)
     // before that starts.
     if (wantSlots)
     {
-        if (g_cfgWriteWaveslots)
-            EnsureWaveslots(g_cfgSlots);
-        else
-            Log("waveslots: WriteWaveslots=0, so you must declare "
-                "STREAM_ENGINE_1..%d yourself",
-                g_cfgSlots);
+        Log("waveslots.xml editing disabled in source");
     }
 
     for (int i = 0; i < 2400; i++)
