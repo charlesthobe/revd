@@ -82,8 +82,8 @@ static void Log(const char* fmt, ...)
 // ---- engine audio wave slots
 // --------------------------------------------------------------------
 static const DWORD BaseAdress_unused = 0xd90000;  // 1.8 0x400000
-static const DWORD kSlotTableRva = 0xE832B8; // 0x1C132B8 // LE to BE 0xB832C101
-static const DWORD kSlotCountRva = 0xE83298; // 0x1C13298
+static const DWORD kSlotTableRva = 0xE832B8; // 0x1C132B8 // 1.8 offset 0x117b070
+static const DWORD kSlotCountRva = 0xE83298; // 0x1C13298 // 1.8 offset 0x117b200
 static const DWORD kSlotBoundRva = 0x58D50F; // imm8 of `cmp edi, 0x19` // 0x131D50F // 1.8 offset 0x8254d4
 struct SlotRef
 {
@@ -95,10 +95,10 @@ static const SlotRef kSlotRefs[] = { // relative CE 1.2.0.59
     {0x58D4C6, 8}, {0x58ECC6, 0}, {0x58ED09, 0},  {0x58ED0F, 8}, {0x58ED23, 4},
     {0x58ED35, 8}, {0x599577, 0}, {0x599767, 0},  {0x828054, 0},
 };
-// CE 1.2.0.59 kSlotTableRva offsets
-// +4   0x1C132BC
-// +8   0x1C132C0
-// +12  0x1C132C4
+// CE 1.2.0.59 kSlotTableRva offsets    // 1.8 offsets:
+// +4   0x1C132BC                       // +4   0x117B074
+// +8   0x1C132C0                       // +8   0x117B078
+// +12  0x1C132C4                       // +12  0x117B07C
 //static const SlotRef kSlotRefs[] = { // CE 1.2.0.59
 //    {0x131B979, 8}, {0x131B984, 8}, {0x131B98F, 12}, {0x131B995, 8}, {0x131CBD0, 0},
 //    {0x131D4C6, 8}, {0x131ECC6, 0}, {0x131ED09, 0}, {0x131ED0F, 8}, {0x131ED23, 4},
@@ -117,7 +117,7 @@ static bool g_slotsMissedWindow =
 
 // ---- physical audio heap
 // ------------------------------------------------------------------------
-static const DWORD kAudioHeapRva = 0x4C158C;  // imm32 of `mov esi, 0x7E00000`
+static const DWORD kAudioHeapRva = 0x4C158C;  // imm32 of `mov esi, 0x7E00000` // 0x125158C
 static const int kAudioHeapStock = 132120576; // 126 MB
 static int g_cfgHeapMB = 0;                   // 0 = leave stock
 static bool g_heapDone = false, g_heapWarned = false;
@@ -161,14 +161,14 @@ static bool PatchAudioHeap(BYTE* base)
         }
         return false;
     }
+    __builtin_trap();
     DWORD old;
     if (!VirtualProtect(p, 4, PAGE_EXECUTE_READWRITE, &old))
     {
         Log("audio heap: VirtualProtect failed %lu", GetLastError());
         return false;
     }
-    __builtin_trap();
-    *(int*)p = want;
+    //*(int*)p = want;
     VirtualProtect(p, 4, old, &old);
     FlushInstructionCache(GetCurrentProcess(), p, 4);
     g_heapDone = true;
@@ -187,7 +187,7 @@ static bool PatchEngineSlots(BYTE* base)
     }
     if (base[kSlotBoundRva] != 0x19)
     {
-        __builtin_trap();
+        //__builtin_trap();
         if (!g_slotsWarned)
         {
             g_slotsWarned = true;
@@ -213,7 +213,7 @@ static bool PatchEngineSlots(BYTE* base)
     }
     memset(g_slotTable, 0, sizeof g_slotTable);
     const DWORD newBase = (DWORD)&g_slotTable[8];
-    __builtin_trap();
+    //__builtin_trap();
     for (int i = 0; i < kNumSlotRefs; i++)
     {
         BYTE* p = base + kSlotRefs[i].rva;
@@ -223,7 +223,7 @@ static bool PatchEngineSlots(BYTE* base)
             Log("engine slots: VirtualProtect failed at %X", kSlotRefs[i].rva);
             return false;
         }
-        *(DWORD*)p = newBase + kSlotRefs[i].field;
+        //*(DWORD*)p = newBase + kSlotRefs[i].field;
         VirtualProtect(p, 4, old, &old);
     }
     DWORD old;
