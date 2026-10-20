@@ -82,6 +82,47 @@ static void Log(const char* fmt, ...)
 // ---- engine audio wave slots
 // --------------------------------------------------------------------
 static const DWORD BaseAdress_unused = 0xd90000;  // 1.8 0x400000
+/* 0 offset patterns CE 1.2.0.59 "b8 32 c1 01" / 1.0.8.0 "70 b0 17 01" / matches
+8b 81 3c 0a 00 00 83 f8 ff 74 0a c1 e0 04 8b 80 b8 32 c1 01 c3  CE
+8b 81 3c 0a 00 00 83 f8 ff 74 0a c1 e0 04 8b 80 70 b0 17 01 c3  1.0.8.0
+8b 81 3c 0a 00 00 83 f8 ff 74 0a c1 e0 04 8b 80 ^^ ?? ?? ?? c3
+
+33 ff 83 cb ff 39 3d 98 32 c1 01 76 66 8b 6c 24 14 be b8 32 c1 01 8d 9b 00 00 00 00
+33 ff 83 cd ff 39 3d 00 b2 17 01 76 6e 8b 5c 24 14 be 70 b0 17 01 8d 9b 00 00 00 00
+33 ff 83 ?? ff 39 3d ?? ?? ?? 01 76 ?? 8b ?? 24 14 be ^^ ?? ?? ?? 8d 9b 00 00 00 00
+
+83 c6 10 3b 3d 98 32 c1 01 72 d4 83 fb ff 74 26 8b f3 c1 e6 04 55 8b 8e b8 32 c1 01
+47 83 c6 10 3b 3d 00 b2 17 01 72 d1 83 fd ff 74 2b 8b f5 c1 e6 04 8b 8e 70 b0 17 01
+83 c6 10 3b 3d ?? ?? ?? 01 72 ?? 83 ?? ff 74 ?? 8b ?? c1 ?? 04 55 8b 8e ^^ ?? ?? ??                 CE
+?? 83 c6 10 3b 3d ?? ?? ?? 01 72 ?? 83 ?? ff 74 ?? 8b ?? c1 ?? 04 8b 8e ^^ ?? ?? ??                 1.0.8.0
+
+e8 69 53 fe ff 8b 87 3c 0a 00 00 83 f8 ff 74 0b c1 e0 04 8b 80 b8 32 c1 01 eb 02 33 c0
+e8 57 6d fd ff 8b bf 3c 0a 00 00 83 ff ff 74 0b c1 e7 04 8b bf 70 b0 17 01 eb 02 33 ff
+e8 ?? ?? ?? ff 8b ?? 3c 0a 00 00 83 ?? ff 74 0b c1 ?? 04 8b ?? ^^ ?? ?? ?? eb 02 33
+
+e8 79 51 fe ff 8b 87 3c 0a 00 00 83 f8 ff 74 0b c1 e0 04 8b 80 b8 32 c1 01 eb 02 33 c0
+e8 cb 6b fd ff 8b 87 3c 0a 00 00 83 f8 ff 74 0b c1 e0 04 8b 80 70 b0 17 01 eb 02 33 c0
+e8 ?? ?? ?? ff 8b 87 3c 0a 00 00 83 f8 ff 74 0b c1 e0 04 8b 80 ^^ ?? ?? ?? eb 02 33 c0
+
+ff b0 b8 32 c1 01           // Substitute in the memory address after it's been found by one of the previous methods
+8b 88 70 b0 17 01
+?? ?? ^^ ?? ?? ??
+*/
+
+/* +4 offset patterns CE 1.2.0.59 "bc 32 c1 01" / 1.0.8.0 "74 b0 17 01" / matches
+
+
+*/
+
+/* +8 offset patterns CE 1.2.0.59 "c0 32 c1 01" / 1.0.8.0 "78 b0 17 01" / matches
+
+
+*/
+
+/* +12 offset patterns CE 1.2.0.59 "c4 32 c1 01" / 1.0.8.0 "7c b0 17 01" / matches
+
+
+*/
 static const DWORD kSlotTableRva = 0xE832B8; // 0x1C132B8 // 1.8 offset 0x117b070
 static const DWORD kSlotCountRva = 0xE83298; // 0x1C13298 // 1.8 offset 0x117b200
 static const DWORD kSlotBoundRva = 0x58D50F; // imm8 of `cmp edi, 0x19` // 0x131D50F // 1.8 offset 0x8254d4
