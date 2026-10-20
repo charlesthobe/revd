@@ -82,6 +82,7 @@ static void Log(const char* fmt, ...)
 // ---- engine audio wave slots
 // --------------------------------------------------------------------
 static const DWORD BaseAdress_unused = 0xd90000;  // 1.8 0x400000
+// Patterns are commented above RVA vars.
 /* 0 offset patterns CE 1.2.0.59 "b8 32 c1 01" / 1.0.8.0 "70 b0 17 01" / matches
 8b 81 3c 0a 00 00 83 f8 ff 74 0a c1 e0 04 8b 80 b8 32 c1 01 c3  CE
 8b 81 3c 0a 00 00 83 f8 ff 74 0a c1 e0 04 8b 80 70 b0 17 01 c3  1.0.8.0
@@ -106,22 +107,50 @@ e8 ?? ?? ?? ff 8b 87 3c 0a 00 00 83 f8 ff 74 0b c1 e0 04 8b 80 ^^ ?? ?? ?? eb 02
 
 ff b0 b8 32 c1 01           // Substitute in the memory address after it's been found by one of the previous methods
 8b 88 70 b0 17 01
-?? ?? ^^ ?? ?? ??
+ff ?? ^^ ?? ?? ??                                CE
+8b ?? ^^ ?? ?? ??                                1.0.8.0
 */
 
 /* +4 offset patterns CE 1.2.0.59 "bc 32 c1 01" / 1.0.8.0 "74 b0 17 01" / matches
-
-
+e8 b8 9d ef ff ff 05 a0 32 c1 01 0f b7 c5 89 86 bc 32 c1 01
+e8 b0 8f f6 ff 01 3d 0c b2 17 01 0f b7 d3 89 96 74 b0 17 01
+e8 ?? ?? ?? ff ?? ?? ?? ?? ?? 01 0f b7 ?? 89 ?? ^^ ?? ?? ??
 */
 
 /* +8 offset patterns CE 1.2.0.59 "c0 32 c1 01" / 1.0.8.0 "78 b0 17 01" / matches
+8b 4c 24 04 c1 e1 04 8b 81 c0 32 c1 01 85 c0
+8b 44 24 04 c1 e0 04 8b 88 78 b0 17 01 85 c9
+8b ?? 24 04 c1 ?? 04 8b ?? ^^ ?? ?? ?? 85 ??
 
+89 81 c0 32 c1 01 a1
+89 88 78 b0 17 01 8b
+89 ?? ^^ ?? ?? ?? a1                                CE
+89 ?? ^^ ?? ?? ?? 8b                                1.0.8.0
 
+a1 b4 35 b0 01 89 81 c4 32 c1 01 83 b9 c0 32 c1 01 00 75 06
+0d 6c cb 0f 01 89 88 7c b0 17 01 83 b8 78 b0 17 01 00 75 07
+0d ?? ?? ?? 01 89 ?? ?? ?? ?? 01 83 ?? ^^ ?? ?? ?? 00 75 ??
+
+68 60 f0 81 01 b9 08 3f c1 01 e8 ed 00 f2 ff 33 ff be c0 32 c1 01 8d 9b 00 00 00 00
+68 9c 04 d8 00 b9 a0 bc 17 01 e8 cd e1 f8 ff 33 c0 be 78 b0 17 01 8d 9b 00 00 00 00
+68 ?? ?? ?? ?? b9 ?? ?? ?? 01 e8 ?? ?? ?? ff 33 ?? be ^^ ?? ?? ?? 8d 9b 00 00 00 00
+
+8b 8e b8 32 c1 01 ff 86 c0 32 c1 01 e8 b8 9d ef ff ff
+   bf 01 00 00 00 01 be 78 b0 17 01 53 e8 b0 8f f6 ff
+?? ?? ?? ?? ?? ?? ?? ?? ^^ ?? ?? ?? ?? ?? ?? ?? ?? ff
+
+8b c7 c1 e0 04 ff 80 c0 32 c1 01
+8b cf c1 e1 04 83 81 78 b0 17 01 01
+8b ?? c1 ?? 04 ?? ?? ^^ ?? ?? ??
+
+Extra for the last one in 1.0.8.0 only so far:
+8b ?? c1 ?? 04 ?? ?? ** ?? ?? ?? 01 8d ?? ^^ ?? ?? ??
 */
 
 /* +12 offset patterns CE 1.2.0.59 "c4 32 c1 01" / 1.0.8.0 "7c b0 17 01" / matches
-
-
+89 81 c4 32 c1 01
+89 88 7c b0 17 01
+89 ?? ^^ ?? ?? ??
 */
 static const DWORD kSlotTableRva = 0xE832B8; // 0x1C132B8 // 1.8 offset 0x117b070
 static const DWORD kSlotCountRva = 0xE83298; // 0x1C13298 // 1.8 offset 0x117b200
