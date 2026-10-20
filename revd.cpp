@@ -117,7 +117,7 @@ static bool g_slotsMissedWindow =
 
 // ---- physical audio heap
 // ------------------------------------------------------------------------
-static const DWORD kAudioHeapRva = 0x4C158C;  // imm32 of `mov esi, 0x7E00000` // 0x125158C
+static const DWORD kAudioHeapRva = 0x4C158C;  // imm32 of `mov esi, 0x7E00000` // 0x125158C // 1.8 offset 0x7bc4ec
 static const int kAudioHeapStock = 132120576; // 126 MB
 static int g_cfgHeapMB = 0;                   // 0 = leave stock
 static bool g_heapDone = false, g_heapWarned = false;
