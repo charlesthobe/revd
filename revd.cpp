@@ -105,10 +105,10 @@ e8 79 51 fe ff 8b 87 3c 0a 00 00 83 f8 ff 74 0b c1 e0 04 8b 80 b8 32 c1 01 eb 02
 e8 cb 6b fd ff 8b 87 3c 0a 00 00 83 f8 ff 74 0b c1 e0 04 8b 80 70 b0 17 01 eb 02 33 c0
 e8 ?? ?? ?? ff 8b 87 3c 0a 00 00 83 f8 ff 74 0b c1 e0 04 8b 80 ^^ ?? ?? ?? eb 02 33 c0
 
-ff b0 b8 32 c1 01           // Substitute in the memory address after it's been found by one of the previous methods
-8b 88 70 b0 17 01
-ff ?? ^^ ?? ?? ??                                CE
-8b ?? ^^ ?? ?? ??                                1.0.8.0
+ff b0 b8 32 c1 01 e8           // Substitute in the memory address after it's been found by one of the previous methods
+8b 88 70 b0 17 01 53
+ff ?? ^^ ?? ?? ?? e8                             CE
+8b ?? ^^ ?? ?? ?? 53                             1.0.8.0
 */
 
 /* +4 offset patterns CE 1.2.0.59 "bc 32 c1 01" / 1.0.8.0 "74 b0 17 01" / matches
@@ -137,7 +137,7 @@ a1 b4 35 b0 01 89 81 c4 32 c1 01 83 b9 c0 32 c1 01 00 75 06
 
 8b 8e b8 32 c1 01 ff 86 c0 32 c1 01 e8 b8 9d ef ff ff
    bf 01 00 00 00 01 be 78 b0 17 01 53 e8 b0 8f f6 ff
-?? ?? ?? ?? ?? ?? ?? ?? ^^ ?? ?? ?? ?? ?? ?? ?? ?? ff
+                        ^^ ?? ?? ?? ?? ?? ?? ?? ?? ff
 
 8b c7 c1 e0 04 ff 80 c0 32 c1 01
 8b cf c1 e1 04 83 81 78 b0 17 01 01
