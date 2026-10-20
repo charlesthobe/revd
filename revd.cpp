@@ -153,7 +153,16 @@ Extra for the last one in 1.0.8.0 only so far:
 89 ?? ^^ ?? ?? ??
 */
 static const DWORD kSlotTableRva = 0xE832B8; // 0x1C132B8 // 1.8 offset 0x117b070
+
+/* Patterns CE "98 32 c1 01" | 1.0.8.0 "00 b2 17 01"
+89 46 f8 c7 06 00 00 00 00 c7 46 04 00 00 00 00 85 c0 74 0e ff 05 98 32 c1 01 83 c6 10 83 ff 19 72 be
+89 46 f8 c7 06 00 00 00 00 c7 46 04 00 00 00 00 74 11 83 05 00 b2 17 01 01 8b c7 83 c6 10 83 f8 19 72 b9
+89 46 f8 c7 06 00 00 00 00 c7 46 04 00 00 00 00 85 ?? 74 ?? ?? 05 ^^ ?? ?? ?? 83 ?? 10 83 ?? 19 72
+89 46 f8 c7 06 00 00 00 00 c7 46 04 00 00 00 00 74 ?? 83 05 ^^ ?? ?? ?? 01 8b ?? 83 ?? 10 83 ?? 19 72
+*/
 static const DWORD kSlotCountRva = 0xE83298; // 0x1C13298 // 1.8 offset 0x117b200
+
+// Patterns: same as kSlotCountRva just target 19 (1 byte) in "?? 83 ?? 10 83 ?? 19 72"
 static const DWORD kSlotBoundRva = 0x58D50F; // imm8 of `cmp edi, 0x19` // 0x131D50F // 1.8 offset 0x8254d4
 struct SlotRef
 {
@@ -187,6 +196,11 @@ static bool g_slotsMissedWindow =
 
 // ---- physical audio heap
 // ------------------------------------------------------------------------
+/* Patterns: addresses aren't referenced elsewhere, the value at the address: "00 00 E0 07"
+be 00 00 e0 07 e8 cb 02 b4 ff
+be 00 00 e0 07 e8 0a 7f c9 ff
+be ^^ ** ** ** e8 ?? ?? ?? ff
+*/
 static const DWORD kAudioHeapRva = 0x4C158C;  // imm32 of `mov esi, 0x7E00000` // 0x125158C // 1.8 offset 0x7bc4ec
 static const int kAudioHeapStock = 132120576; // 126 MB
 static int g_cfgHeapMB = 0;                   // 0 = leave stock
