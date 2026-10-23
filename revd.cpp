@@ -152,7 +152,7 @@ Extra for the last one in 1.0.8.0 only so far:
 89 88 7c b0 17 01
 89 ?? ^^ ?? ?? ??
 */
-static const DWORD kSlotTableRva = 0xE832B8; // 0x1C132B8 // 1.8 offset 0x117b070
+static const DWORD kSlotTableRva = 0xE832B8; // 0x1C132B8 // 1.0.8.0 offset 0x117b070 // 1.0.7.0 offset 0x168e870
 
 /* Patterns CE "98 32 c1 01" | 1.0.8.0 "00 b2 17 01"
 89 46 f8 c7 06 00 00 00 00 c7 46 04 00 00 00 00 85 c0 74 0e ff 05 98 32 c1 01 83 c6 10 83 ff 19 72 be
