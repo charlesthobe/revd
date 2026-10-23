@@ -160,7 +160,7 @@ static const DWORD kSlotTableRva = 0xE832B8; // 0x1C132B8 // 1.8 offset 0x117b07
 89 46 f8 c7 06 00 00 00 00 c7 46 04 00 00 00 00 85 ?? 74 ?? ?? 05 ^^ ?? ?? ?? 83 ?? 10 83 ?? 19 72
 89 46 f8 c7 06 00 00 00 00 c7 46 04 00 00 00 00 74 ?? 83 05 ^^ ?? ?? ?? 01 8b ?? 83 ?? 10 83 ?? 19 72
 */
-static const DWORD kSlotCountRva = 0xE83298; // 0x1C13298 // 1.8 offset 0x117b200
+static const DWORD kSlotTableRva = 0xE832B8; // 0x1C132B8 // 1.0.8.0 offset 0x117b070 // 1.0.7.0 offset 0x168e870
 
 // Patterns: same as kSlotCountRva just target 19 (1 byte) in "?? 83 ?? 10 83 ?? 19 72"
 static const DWORD kSlotBoundRva = 0x58D50F; // imm8 of `cmp edi, 0x19` // 0x131D50F // 1.8 offset 0x8254d4
