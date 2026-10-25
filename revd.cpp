@@ -86,7 +86,7 @@ static const DWORD BaseAdress_unused = 0xd90000;  // 1.8 0x400000
 /* 0 offset patterns CE 1.2.0.59 "b8 32 c1 01" / 1.0.8.0 "70 b0 17 01" / matches
 8b 81 3c 0a 00 00 83 f8 ff 74 0a c1 e0 04 8b 80 b8 32 c1 01 c3  CE
 8b 81 3c 0a 00 00 83 f8 ff 74 0a c1 e0 04 8b 80 70 b0 17 01 c3  1.0.8.0
-8b 81 3c 0a 00 00 83 f8 ff 74 0a c1 e0 04 8b 80 ^^ ?? ?? ?? c3
+8b 81 3c 0a 00 00 83 f8 ff 74 0a c1 e0 04 8b 80 ^^ ?? ?? ?? c3                                  This works for 1.2.0.43 unlike most of the rest below
 
 33 ff 83 cb ff 39 3d 98 32 c1 01 76 66 8b 6c 24 14 be b8 32 c1 01 8d 9b 00 00 00 00
 33 ff 83 cd ff 39 3d 00 b2 17 01 76 6e 8b 5c 24 14 be 70 b0 17 01 8d 9b 00 00 00 00
